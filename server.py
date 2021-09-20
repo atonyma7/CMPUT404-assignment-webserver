@@ -1,5 +1,6 @@
 #  coding: utf-8 
 import socketserver
+import os
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -28,11 +29,55 @@ import socketserver
 
 
 class MyWebServer(socketserver.BaseRequestHandler):
-    
+    #helper functions
+    def send_content(self, file_path):
+        mime_type = 'text/html'
+        if file_path.endswith('.css'):
+            mime_type = 'text/css'
+        elif file_path.endswith('.html'):
+            mime_type = 'text/html'
+        f = open(file_path, 'r')
+        self.request.sendall(bytearray("HTTP/1.1 200 OK\r\n",'utf-8'))
+        self.request.sendall(bytearray("Content-Type: {}\r\n".format(mime_type), 'utf-8'))
+        self.request.sendall(bytearray("\r\n", 'utf-8'))
+        # send data per line
+        content = f.read()
+        self.request.sendall(bytearray(content, 'utf-8'))
+        f.close()
+        
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+
+        http_method = self.data.decode().split()[0]
+        requested_path = self.data.decode().split()[1]
+        print (http_method)
+        print (requested_path)       
+        mime_type = 'text/html'
+        if (http_method == 'GET'):
+            file_path = os.path.join(os.getcwd(), 'www' + requested_path)  
+
+            #check that the absolute path of the requested file path isn't trying to access something outside of the www directory
+            if (os.path.join(os.getcwd(), 'www') not in os.path.abspath(file_path)):
+                self.request.sendall(bytearray("HTTP/1.1 404 NOT FOUND\r\n",'utf-8'))
+            else:
+                if not requested_path.endswith('/'):
+                    if os.path.isdir(file_path):
+                        file_path += '/'
+                        self.request.sendall(bytearray("HTTP/1.1 301 Moved\r\n",'utf-8'))
+                        self.request.sendall(bytearray("Location: http://127.0.0.1:8080" + requested_path +"/\r\n",'utf-8'))
+                if not os.path.isfile(file_path):
+                    if os.path.isfile(file_path + 'index.html'):
+                        file_path += 'index.html'
+                        self.send_content(file_path)
+                    else:
+                        self.request.sendall(bytearray("HTTP/1.1 404 NOT FOUND\r\n",'utf-8'))
+                else:
+                    self.send_content(file_path)
+
+        else:
+            self.request.sendall(bytearray("HTTP/1.1 405 Method Not Allowed\r\n", 'utf-8'))
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
