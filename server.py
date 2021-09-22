@@ -27,6 +27,10 @@ import os
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
+# Sources used:
+# https://stackoverflow.com/a/32628115
+# https://www.codementor.io/@joaojonesventura/building-a-basic-http-server-from-scratch-in-python-1cedkg0842
+
 
 class MyWebServer(socketserver.BaseRequestHandler):
     #helper functions
@@ -40,7 +44,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.request.sendall(bytearray("HTTP/1.1 200 OK\r\n",'utf-8'))
         self.request.sendall(bytearray("Content-Type: {}\r\n".format(mime_type), 'utf-8'))
         self.request.sendall(bytearray("\r\n", 'utf-8'))
-        # send data per line
         content = f.read()
         self.request.sendall(bytearray(content, 'utf-8'))
         f.close()
@@ -49,29 +52,36 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
 
+        
         http_method = self.data.decode().split()[0]
         requested_path = self.data.decode().split()[1]
         print (http_method)
         print (requested_path)       
         mime_type = 'text/html'
         if (http_method == 'GET'):
+            #requested path is the requested path we parsed from the http request data
+            #whereas file path is the path of the file that exists on our system that we want to open later
             file_path = os.path.join(os.getcwd(), 'www' + requested_path)  
 
             #check that the absolute path of the requested file path isn't trying to access something outside of the www directory
             if (os.path.join(os.getcwd(), 'www') not in os.path.abspath(file_path)):
-                self.request.sendall(bytearray("HTTP/1.1 404 NOT FOUND\r\n",'utf-8'))
+                self.request.sendall(bytearray("HTTP/1.1 404 Not found\r\n",'utf-8'))
             else:
+                #specifically check for request path that do not end with '/', if they don't, check that the file path that was 
+                #created in the above code is an existing directory or not, if it is, add '/'
+                #the next if block should then handle this file path and serve the index.html file contained in the directory
                 if not requested_path.endswith('/'):
                     if os.path.isdir(file_path):
                         file_path += '/'
                         self.request.sendall(bytearray("HTTP/1.1 301 Moved\r\n",'utf-8'))
                         self.request.sendall(bytearray("Location: http://127.0.0.1:8080" + requested_path +"/\r\n",'utf-8'))
                 if not os.path.isfile(file_path):
+                    #serve index.html if possible (meaning the path given is that of a directory)
                     if os.path.isfile(file_path + 'index.html'):
                         file_path += 'index.html'
                         self.send_content(file_path)
                     else:
-                        self.request.sendall(bytearray("HTTP/1.1 404 NOT FOUND\r\n",'utf-8'))
+                        self.request.sendall(bytearray("HTTP/1.1 404 not found\r\n",'utf-8'))
                 else:
                     self.send_content(file_path)
 
