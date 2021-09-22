@@ -74,7 +74,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 if not requested_path.endswith('/'):
                     if os.path.isdir(file_path):
                         file_path += '/'
-                        self.request.sendall(bytearray("HTTP/1.1 301 Moved\r\n",'utf-8'))
+                        self.request.sendall(bytearray("HTTP/1.1 301 Moved Permanently\r\n",'utf-8'))
                         self.request.sendall(bytearray("Location: http://127.0.0.1:8080" + requested_path +"/\r\n",'utf-8'))
                 if not os.path.isfile(file_path):
                     #serve index.html if possible (meaning the path given is that of a directory)
