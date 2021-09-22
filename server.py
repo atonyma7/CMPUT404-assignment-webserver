@@ -30,6 +30,7 @@ import os
 # Sources used:
 # https://stackoverflow.com/a/32628115
 # https://www.codementor.io/@joaojonesventura/building-a-basic-http-server-from-scratch-in-python-1cedkg0842
+# https://uofa-cmput404.github.io/cmput404-slides/04-HTTP.html#/
 
 
 class MyWebServer(socketserver.BaseRequestHandler):
@@ -52,7 +53,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
 
-        
+        #we can just split on whitespace, the first argument will be the method used and the second will be the 
         http_method = self.data.decode().split()[0]
         requested_path = self.data.decode().split()[1]
         print (http_method)
