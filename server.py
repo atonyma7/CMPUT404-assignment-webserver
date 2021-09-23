@@ -1,6 +1,7 @@
 #  coding: utf-8 
 import socketserver
 import os
+import mimetypes
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos, Anthony Ma
 # 
@@ -31,7 +32,6 @@ import os
 # https://stackoverflow.com/a/32628115
 # https://www.codementor.io/@joaojonesventura/building-a-basic-http-server-from-scratch-in-python-1cedkg0842
 # https://uofa-cmput404.github.io/cmput404-slides/04-HTTP.html#/
-# https://stackoverflow.com/a/66012377
 
 
 class MyWebServer(socketserver.BaseRequestHandler):
@@ -40,15 +40,20 @@ class MyWebServer(socketserver.BaseRequestHandler):
         mt = mimetypes.guess_type(file_path)
         if mt:
             print("Mime Type:", mt[0])
+            mime_type = mt[0]
         else:
             #default to html
+            mime_type = 'text/html'
+        if file_path.endswith('.css'):
+            mime_type = 'text/css'
+        elif file_path.endswith('.html'):
             mime_type = 'text/html'
         f = open(file_path, 'r+b')
         self.request.sendall(bytearray("HTTP/1.1 200 OK\r\n",'utf-8'))
         self.request.sendall(bytearray("Content-Type: {}\r\n".format(mime_type), 'utf-8'))
         self.request.sendall(bytearray("\r\n", 'utf-8'))
         content = f.read()
-        self.request.sendall(bytearray(content, 'utf-8'))
+        self.request.sendall(content)
         f.close()
         
     def handle(self):
