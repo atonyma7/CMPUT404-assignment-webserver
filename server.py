@@ -44,10 +44,6 @@ class MyWebServer(socketserver.BaseRequestHandler):
         else:
             #default to html
             mime_type = 'text/html'
-        if file_path.endswith('.css'):
-            mime_type = 'text/css'
-        elif file_path.endswith('.html'):
-            mime_type = 'text/html'
         f = open(file_path, 'r+b')
         self.request.sendall(bytearray("HTTP/1.1 200 OK\r\n",'utf-8'))
         self.request.sendall(bytearray("Content-Type: {}\r\n".format(mime_type), 'utf-8'))
