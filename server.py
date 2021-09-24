@@ -50,6 +50,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
         self.request.sendall(bytearray("HTTP/1.1 200 OK\r\n",'utf-8'))
         self.request.sendall(bytearray("Content-Type: {}\r\n".format(mime_type), 'utf-8'))
         self.request.sendall(bytearray("Content-Length: {}\r\n".format(len(content)), 'utf-8'))
+        self.request.sendall(bytearray("Connection: close\r\n", 'utf-8'))
         self.request.sendall(bytearray("\r\n", 'utf-8'))
         self.request.sendall(content)
         f.close()
